@@ -9,17 +9,17 @@ class Particle:
         self.mass = mass
         self.radius = radius
     
-    def update_position(self, time_step, gravity=9.81, floor=None, friction=0.9):
+    def update_position(self, time_step, gravity=9.81, ceiling=None, friction=0.99):
         self.x_position += self.x_velocity * time_step
 
         self.y_velocity += gravity * time_step
         self.y_position += self.y_velocity * time_step
-
+    
         # Apply friction continuously when the ball is on the floor
-        if floor is not None and self.y_position - self.radius <= floor:
+        if ceiling is not None and self.y_position - self.radius >= ceiling:
             self.x_velocity *= friction
 
-    def box_collision(self, floor, ceiling, left, right, restitution=0.9):
+    def box_collision(self, floor, ceiling, left, right, restitution=0.4):
         # Top and Bottom Walls
         if self.y_position - self.radius <= floor:
             self.y_position = floor + self.radius
