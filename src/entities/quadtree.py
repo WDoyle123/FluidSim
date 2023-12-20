@@ -32,7 +32,7 @@ class Quadtree:
         self.divided = True
 
     def insert(self, particle):
-        if not self.boundary.collidepoint(particle.x_position, particle.y_position):
+        if not self.boundary.inflate(particle.radius * 2, particle.radius * 2).collidepoint(particle.x_position, particle.y_position):
             return False
 
         if len(self.particles) < self.capacity:
@@ -43,21 +43,22 @@ class Quadtree:
             if not self.divided:
                 self.subdivide()
 
-            if self.north_west.insert(particle): return True
-            if self.north_east.insert(particle): return True
-            if self.south_west.insert(particle): return True
-            if self.south_east.insert(particle): return True
+            inserted = (self.north_west.insert(particle) or
+                        self.north_east.insert(particle) or
+                        self.south_west.insert(particle) or
+                        self.south_east.insert(particle))
+            return inserted
 
-    def query(self, range, found):
-        if not self.boundary.colliderect(range):
+    def query(self, collision_box, found):
+        if not self.boundary.colliderect(collision_box):
             return
         else:
             for particle in self.particles:
-                if range.collidepoint(particle.x_position, particle.y_position):
+                if collision_box.collidepoint(particle.x_position, particle.y_position):
                     found.append(particle)
 
             if self.divided:
-                self.north_west.query(range, found)
-                self.north_east.query(range, found)
-                self.south_west.query(range, found)
-                self.south_east.query(range, found)
+                self.north_west.query(collision_box, found)
+                self.north_east.query(collision_box, found)
+                self.south_west.query(collision_box, found)
+                self.south_east.query(collision_box, found)

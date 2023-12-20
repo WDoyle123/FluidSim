@@ -20,10 +20,10 @@ class Particle:
         # Apply friction continuously when the ball is on the floor
         if ceiling is not None and self.y_position + self.radius >= ceiling:
             self.x_velocity *= friction
-            if self.x_velocity < 0.001:
+            if self.x_velocity < 1e-12:
                 self.x_velocity = 0
 
-    def box_collision(self, floor, ceiling, left, right, restitution=0.99):
+    def boundary_collision(self, floor, ceiling, left, right, restitution=0.9):
         # Top and Bottom Walls
         if self.y_position - self.radius <= floor:
             self.y_position = floor + self.radius
@@ -40,7 +40,6 @@ class Particle:
         elif self.x_position + self.radius >= right:
             self.x_position = right - self.radius
             self.x_velocity = -self.x_velocity * restitution
-     
 
     def update_energy(self, gravity=9.81, ground_y=600):
         # Reset energy
@@ -56,48 +55,50 @@ class Particle:
         potential_energy = self.mass * gravity * (ground_y - self.y_position)
         self.energy += potential_energy
 
-    def distance_to(self, other_particle):
-        dx = self.x_position - other_particle.x_position
-        dy = self.y_position - other_particle.y_position
-        return math.sqrt(dx**2 + dy**2)
-
-    def collide_with(self, other, restitution=0.9, positional_correction_factor=0.01, damping=0.95):
+    def distance_to(self, other):
         dx = self.x_position - other.x_position
         dy = self.y_position - other.y_position
         distance = math.sqrt(dx**2 + dy**2)
 
-        # Check for collision
-        if distance < self.radius + other.radius:
-            # Normal vector
-            nx = dx / (distance + 1e-6)
-            ny = dy / (distance + 1e-6)
+        return dx, dy, distance
 
-            # Relative velocity
-            vx = self.x_velocity - other.x_velocity
-            vy = self.y_velocity - other.y_velocity
-    
-            # Velocity component along the normal
-            vel_normal = vx * nx + vy * ny
+    def collide_with(self, other, restitution=0.9, positional_correction_factor=0.01, damping=0.95):
+        # Find distance between the two particles
+        dx, dy, distance = self.distance_to(other)
 
-            # Check if particles are moving towards each other
-            if vel_normal > 0:
+        # Check to see if they collide
+        if distance <= (self.radius + other.radius):
+
+            # Get normal vectors
+            normal_x = dx / (distance + 1e-6)
+            normal_y = dy / (distance + 1e-6)
+
+            # Relative velocities
+            x_relative_velocity = self.x_velocity - other.x_velocity
+            y_relative_velocity = self.y_velocity - other.y_velocity
+
+            # Velocity along the normal
+            velocity_along_normal = (x_relative_velocity * normal_x) + (y_relative_velocity * normal_y)
+
+            # Return if particles are not going to collide
+            if velocity_along_normal > 0:
                 return
 
-            # Conservation of momentum and inelastic collision
-            impulse = (1 + restitution) * vel_normal / (1 / self.mass + 1 / other.mass)
-            
-            # Apply damping to reduce jitter
+            # Calculate the impulse
+            impulse = ((1 + restitution) * velocity_along_normal) / (1 / self.mass + 1 / other.mass)
+
+            # Apply impulse
+            x_impulse = impulse * normal_x
+            y_impulse = impulse * normal_y
+
+            self.x_velocity -= x_impulse / self.mass
+            self.y_velocity -= y_impulse / self.mass
+
+            other.x_velocity += x_impulse / other.mass
+            other.y_velocity += y_impulse / other.mass
+
             self.x_velocity *= damping
             self.y_velocity *= damping
+    
             other.x_velocity *= damping
             other.y_velocity *= damping
-
-            # Positional correction to prevent overlap
-            correction_amount = positional_correction_factor * max(0, self.radius + other.radius - distance)
-            correction_vector_x = correction_amount * nx
-            correction_vector_y = correction_amount * ny
-
-            self.x_position += correction_vector_x
-            self.y_position += correction_vector_y
-            other.x_position -= correction_vector_x
-            other.y_position -= correction_vector_y
