@@ -8,7 +8,7 @@ import random
 pygame.init()
 
 # Set up the display
-width, height = 800, 600
+width, height = 600, 600
 floor, ceiling = 0, height
 left, right = 0, width
 
@@ -17,7 +17,7 @@ pygame.display.set_caption("Particle Simulation")
 
 # Game loop variables
 clock = pygame.time.Clock()
-time_step = 1 / 30 # Update the simulation by 1/60th of a second each frame
+time_step = 1 / 4 # Update the simulation by 1/60th of a second each frame
 
 # Number of particles to generate
 num_particles = 1000
@@ -27,7 +27,7 @@ particles = []
 for _ in range(num_particles):
     x = random.randrange(left + 10, right - 10) 
     y = random.randrange(floor + 10, ceiling - 10)
-    radius = 2
+    radius = 5
     x_velocity = random.uniform(-50, 50)  
     y_velocity = random.uniform(-50, 50)  
     particle = Particle(x, y, radius=radius, x_velocity=x_velocity, y_velocity=y_velocity)
@@ -54,7 +54,6 @@ while True:
         quadtree.insert(particle)
 
     #quadtree.draw(screen)
-
 
     for particle in particles:
 
