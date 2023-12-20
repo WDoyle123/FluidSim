@@ -23,7 +23,7 @@ class Particle:
             if self.x_velocity < 0.001:
                 self.x_velocity = 0
 
-    def box_collision(self, floor, ceiling, left, right, restitution=0.9):
+    def box_collision(self, floor, ceiling, left, right, restitution=0.99):
         # Top and Bottom Walls
         if self.y_position - self.radius <= floor:
             self.y_position = floor + self.radius

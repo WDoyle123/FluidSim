@@ -17,4 +17,4 @@ FluidSim is a particle-based fluid simulation designed to demonstrate the concep
 
 ## Demo
 
-![figure_1](figures/quadtree_particles_example.png)
+![figure_1](figures/qtree_1000_particles.gif)

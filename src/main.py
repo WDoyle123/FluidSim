@@ -17,7 +17,7 @@ pygame.display.set_caption("Particle Simulation")
 
 # Game loop variables
 clock = pygame.time.Clock()
-time_step = 1 / 4 # Update the simulation by 1/60th of a second each frame
+time_step = 1 / 10 # Update the simulation by 1/60th of a second each frame
 
 # Number of particles to generate
 num_particles = 1000
@@ -53,7 +53,7 @@ while True:
         particle.box_collision(floor, ceiling, left, right)
         quadtree.insert(particle)
 
-    #quadtree.draw(screen)
+    quadtree.draw(screen)
 
     for particle in particles:
 
