@@ -2,12 +2,25 @@ import pygame
 
 class Quadtree:
     def __init__(self, boundary, capacity):
+        """
+        Initialise the Quadtree.
+
+        Args:
+            boundary (pygame.Rect): The rectangular boundary of this node of the quadtree.
+            capacity (int): The maximum number of particles that a node can hold before subdividing.
+        """
         self.boundary = boundary
         self.capacity = capacity
         self.particles = []
         self.divided = False
 
     def draw(self, screen):
+        """
+        Draw the boundaries of the Quadtree node and its subdivisions.
+
+        Args:
+            screen (pygame.Surface): The pygame surface on which to draw the Quadtree.
+        """
         pygame.draw.rect(screen, (255, 255, 255), self.boundary, 1)
         if self.divided:
             self.north_west.draw(screen)
@@ -16,6 +29,9 @@ class Quadtree:
             self.south_east.draw(screen)
 
     def subdivide(self):
+        """
+        Subdivide the current Quadtree node into four smaller nodes.
+        """
         x, y, width, height = self.boundary
         half_width = width / 2
         half_height = height / 2
@@ -32,6 +48,15 @@ class Quadtree:
         self.divided = True
 
     def insert(self, particle):
+        """
+        Insert a particle into the Quadtree.
+
+        Args:
+            particle (Particle): The particle to be inserted.
+
+        Returns:
+            bool: True if the particle was successfully inserted, False otherwise.
+        """
         if not self.boundary.inflate(particle.radius * 2, particle.radius * 2).collidepoint(particle.x_position, particle.y_position):
             return False
 
@@ -50,6 +75,13 @@ class Quadtree:
             return inserted
 
     def query(self, collision_box, found):
+        """
+        Find particles within a certain area.
+
+        Args:
+            collision_box (pygame.Rect): The area to search within.
+            found (list): The list to which found particles will be added.
+        """
         if not self.boundary.colliderect(collision_box):
             return
         else:
