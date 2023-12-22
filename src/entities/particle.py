@@ -110,7 +110,7 @@ class Particle:
 
         return dx, dy, distance
 
-    def collide_with(self, other, restitution=0.9, positional_correction_factor=0.01, damping=0.95):
+    def collide_with(self, other, dx, dy, distance, restitution=0.9, positional_correction_factor=0.01, damping=0.95):
         """
         Handles the collision between this particle and another particle.
 
@@ -120,9 +120,6 @@ class Particle:
             positional_correction_factor (float, optional): Factor used to correct the position of colliding particles. Defaults to 0.01.
             damping (float, optional): Damping factor to apply to the velocity after collision. Defaults to 0.95.
         """
-        # Find distance between the two particles
-        dx, dy, distance = self.distance_to(other)
-
         # Check to see if they collide
         if distance <= (self.radius + other.radius):
 
