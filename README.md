@@ -10,7 +10,7 @@ FluidSim is a particle-based fluid simulation designed to demonstrate the concep
 
 - Uses ```pygame``` for visualisations.
 - Real-time 2D fluid simulation.
-- Optimised collision detection using QuadTree data structure to minimize the number of collision checks.
+- Optimised collision detection using QuadTree or SpatialGridHashmap data structure to minimize the number of collision checks.
 - Dynamic particle generation with varying velocities and sizes.
 - Adjustable parameters to control simulation behavior and visual aspects.
 
