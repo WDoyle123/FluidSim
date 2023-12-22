@@ -110,7 +110,7 @@ class Particle:
 
         return dx, dy, distance
 
-    def collide_with(self, other, dx, dy, distance, restitution=0.9, positional_correction_factor=0.01, damping=0.95):
+    def collide_with(self, other, dx, dy, distance, restitution=0.9, positional_correction_factor=0.01, damping=1):
         """
         Handles the collision between this particle and another particle.
 

@@ -60,9 +60,8 @@ def main():
         # Update the display after all particles are drawn
         pygame.display.flip()
 
-        clock.tick(60)
 
-        if i > 300:
+        if i > 30000:
             break
 
     pygame.quit()

@@ -11,7 +11,7 @@ class Fluid:
         width (int): Width of the area in which the fluid is contained.
         height (int): Height of the area in which the fluid is contained.
     """
-    def __init__(self, width, height, num_particles):
+    def __init__(self, width, height, num_particles, restitution = 1.0, gravity = 0, friction = 1.0):
         """
         Initialise the fluid with a set number of particles.
 
@@ -23,6 +23,9 @@ class Fluid:
         self.width = width
         self.height = height
         self.particles = [self._create_particle() for _ in range(num_particles)]
+        self.restitution = restitution
+        self.gravity = gravity
+        self.friction = friction
 
     def _create_particle(self):
         """
@@ -47,8 +50,8 @@ class Fluid:
             time_step (float): The time step for the update.
         """
         for particle in self.particles:
-            particle.update_position(time_step)
-            particle.boundary_collision(0, self.height, 0, self.width)
+            particle.update_position(time_step, gravity=self.gravity, friction=self.friction)
+            particle.boundary_collision(0, self.height, 0, self.width, restitution=self.restitution)
 
     def calculate_density(self):
         """
