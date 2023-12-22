@@ -1,42 +1,29 @@
 import cProfile
-
 import pygame
 import sys
 from entities.particle import Particle
+from entities.fluid import Fluid
 from entities.data_structures import SpatialHashGrid
-import random
 
 def main():
-    # Initialize Pygame
+
+    # Initialise Pygame
     pygame.init()
 
     # Set up the display
     width, height = 600, 600
-    floor, ceiling = 0, height
-    left, right = 0, width
-
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Particle Simulation")
 
     # Game loop variables
     clock = pygame.time.Clock()
-    time_step = 1 / 3 # Update the simulation by 1/60th of a second each frame
+    time_step = 1 / 3  # 3 updates a second
 
-    # Number of particles to generate
+    # Initialize the fluid with a certain number of particles
     num_particles = 500
+    fluid = Fluid(width, height, num_particles)
 
-    # Create multiple particle instances with random properties
-    particles = []
-    for _ in range(num_particles):
-        x = random.randrange(left + 10, right - 10) 
-        y = random.randrange(int(floor), int(height / 2))
-        radius = 5
-        x_velocity = random.uniform(-50, 50)  
-        y_velocity = random.uniform(-0, 0)  
-        particle = Particle(x, y, radius=radius, x_velocity=x_velocity, y_velocity=y_velocity)
-        particles.append(particle)
-
-    i =0 
+    i = 0
 
     # Main game loop
     while True:
@@ -50,19 +37,16 @@ def main():
         # Clear the screen at the beginning of each frame
         screen.fill((0, 0, 0))
 
+        # Update the fluid
+        fluid.update(time_step)
+
+        # Initialize SpatialHashGrid
         boundary = pygame.Rect(0, 0, width, height)
-        spatial_hash_grid = SpatialHashGrid(boundary, num_particles, radius)
+        spatial_hash_grid = SpatialHashGrid(boundary, num_particles, fluid.particles[0].radius)
 
-        for particle in particles:
-            # Update the particle
-            particle.update_position(time_step, ceiling=ceiling)
-            particle.boundary_collision(floor, ceiling, left, right)
+        # Insert particles into SpatialHashGrid and handle collisions
+        for particle in fluid.particles:
             spatial_hash_grid.insert_particle(particle)
-
-        # Draw grid (debugging)
-        #spatial_hash_grid.draw_grid(screen)
-
-        for particle in particles:
             nearby_particles = spatial_hash_grid.get_potential_colliders(particle)
             for other in nearby_particles:
                 if other != particle:
@@ -70,11 +54,9 @@ def main():
                     if distance < particle.radius + other.radius:
                         particle.collide_with(other, dx, dy, distance)
 
-            # Draw the particle after updating its position
-            pygame.draw.circle(screen, (0, 0, 255), 
-                (int(particle.x_position), int(particle.y_position)), 
-                particle.radius)
-    
+        # Draw the fluid particles
+        fluid.draw(screen)
+
         # Update the display after all particles are drawn
         pygame.display.flip()
 
@@ -82,8 +64,8 @@ def main():
 
         if i > 300:
             break
-    pygame.quit()
 
+    pygame.quit()
 
 if __name__ == '__main__':
     cProfile.run('main()', 'profile_data.prof')
