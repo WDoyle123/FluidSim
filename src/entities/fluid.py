@@ -26,6 +26,7 @@ class Fluid:
         self.restitution = restitution
         self.gravity = gravity
         self.friction = friction
+        self.density = num_particles / (width * height)
 
     def _create_particle(self):
         """
