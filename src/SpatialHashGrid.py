@@ -48,7 +48,7 @@ def main():
         pygame.display.flip()
 
 
-        if i > 300:
+        if i > 300000:
             break
 
     pygame.quit()

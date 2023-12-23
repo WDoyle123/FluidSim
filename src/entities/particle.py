@@ -22,10 +22,11 @@ class Particle:
         self.y_velocity = y_velocity
         self.mass = mass
         self.radius = radius
+        self.smoothing_radius = radius * 10
         self.energy = 0
-        self.density = 0
-        self.x_density_gradient = 0
-        self.y_density_gradient = 0 
+        self.density = 1
+        self.x_gradient = 0
+        self.y_gradient = 0 
  
     def update_position(self, time_step, ceiling=None, gravity=9.81, friction=0.9):
         """
@@ -163,26 +164,19 @@ class Particle:
 
     def calculate_density(self, distance):
 
-        influence = simple_smoothing_kernel(self.radius * 10, distance)
-        return self.mass * influence
+        influence = smoothing_kernel(self.smoothing_radius, distance)
+        self.density += self.mass * influence
 
-    def calculate_density_derivative(self, other):
-        step_size = 1
-    
-        original_density = self.calculate_density(self.distance_to(other)[2])
+    def calculate_density_derivative(self, other, dx, dy, distance):
 
-        # Calculate density change along x-axis
-        self.x_position += step_size
-        delta_density_x = self.calculate_density(self.distance_to(other)[2]) - original_density
-        self.x_position -= step_size
+        x_direction = dx / distance
+        y_direction = dy / distance
+            
+        self.calculate_density(distance)
+        density_gradient = smoothing_kernel_derivative(distance, self.smoothing_radius)
 
-        # Calculate density change along y-axis
-        self.y_position += step_size
-        delta_density_y = self.calculate_density(self.distance_to(other)[2]) - original_density
-        self.y_position -= step_size
-
-        self.x_density_gradient = (delta_density_x / step_size) * -1e+0
-        self.y_density_gradient = (delta_density_y / step_size) * -1e+0
+        self.x_gradient += x_direction * density_gradient * (other.mass / self.density)
+        self.y_gradient += y_direction * density_gradient * (other.mass / self.density)
 
     def apply_pressure_force(self, time_step, pressure_coefficient=1):
         """
@@ -193,8 +187,8 @@ class Particle:
             time_step (float): The time step for the update.
         """
         # Calculate the force components
-        x_force = self.x_density_gradient * pressure_coefficient
-        y_force = self.y_density_gradient * pressure_coefficient
+        x_force = self.x_gradient * pressure_coefficient
+        y_force = self.y_gradient * pressure_coefficient
 
         # Update the velocity based on the force
         self.x_velocity += (x_force / self.mass) * time_step

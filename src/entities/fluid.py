@@ -41,8 +41,8 @@ class Fluid:
         y = random.uniform(0, self.height)
         mass = 1.0
         radius = 5.0
-        x_velocity = random.uniform(-1, 1)
-        y_velocity = random.uniform(-1, 1)
+        x_velocity = random.uniform(-0, 0)
+        y_velocity = random.uniform(-0, 0)
         return Particle(x, y, mass, radius, x_velocity, y_velocity)
 
     def update(self, time_step):
@@ -52,6 +52,8 @@ class Fluid:
         Args:
             time_step (float): The time step for the update.
         """
+        densities = self.calculate_quadrant_densities()
+        print(f'\r{densities}', end='')
         self.SHG = SpatialHashGrid(self.boundary, self.num_particles, self.particles[0].radius)
         for particle in self.particles:
             particle.update_position(time_step, gravity=self.gravity, friction=self.friction)
@@ -62,11 +64,12 @@ class Fluid:
             nearby_particles = self.SHG.get_potential_colliders(particle)
             for other in nearby_particles:
                 dx, dy, distance = particle.distance_to(other)
-                particle.calculate_density_derivative(other)
+                particle.calculate_density_derivative(other, dx, dy, distance)
                 particle.apply_pressure_force(time_step)
+                '''
                 if distance < particle.radius + other.radius:
                    particle.collide_with(other, dx, dy, distance)
-
+                '''
 
     def draw(self, screen):
         """
@@ -84,8 +87,8 @@ class Fluid:
 
             # Calculate the end point of the gradient arrow
             grad_length = 10  # Adjust the length of the gradient arrow
-            end_x = int(particle.x_position + particle.x_density_gradient * grad_length)
-            end_y = int(particle.y_position + particle.y_density_gradient * grad_length)
+            end_x = int(particle.x_position + particle.x_gradient * grad_length)
+            end_y = int(particle.y_position + particle.y_gradient * grad_length)
 
             # Draw the gradient arrow
             pygame.draw.line(screen, (255, 0, 0), (int(particle.x_position), int(particle.y_position)), (end_x, end_y), 2)
@@ -105,6 +108,30 @@ class Fluid:
 
             screen.blit(temp_surface, (int(particle.x_position - particle.radius * 10), 
                                        int(particle.y_position - particle.radius * 10)))
+
+    def calculate_quadrant_densities(self):
+        """
+        Calculate the density of particles in each quadrant of the container.
+
+        Returns:
+            dict: A dictionary containing the density of each quadrant.
+        """
+        densities = {'top_left': 0, 'top_right': 0, 'bottom_left': 0, 'bottom_right': 0}
+        quadrant_width = self.width / 2
+        quadrant_height = self.height / 2
+
+        for particle in self.particles:
+            if particle.x_position < quadrant_width and particle.y_position < quadrant_height:
+                densities['top_left'] += particle.density
+            elif particle.x_position >= quadrant_width and particle.y_position < quadrant_height:
+                densities['top_right'] += particle.density
+            elif particle.x_position < quadrant_width and particle.y_position >= quadrant_height:
+                densities['bottom_left'] += particle.density
+            else:  # particle.x_position >= quadrant_width and particle.y_position >= quadrant_height
+                densities['bottom_right'] += particle.density
+
+        return densities
+
 
 
 
