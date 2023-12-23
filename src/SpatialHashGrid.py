@@ -12,6 +12,7 @@ def main():
 
     # Set up the display
     width, height = 600, 600
+    boundary = pygame.Rect(0, 0, width, height)
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Particle Simulation")
 
@@ -21,7 +22,7 @@ def main():
 
     # Initialize the fluid with a certain number of particles
     num_particles = 500
-    fluid = Fluid(width, height, num_particles)
+    fluid = Fluid(boundary, num_particles)
 
     i = 0
 
@@ -39,20 +40,6 @@ def main():
 
         # Update the fluid
         fluid.update(time_step)
-
-        # Initialize SpatialHashGrid
-        boundary = pygame.Rect(0, 0, width, height)
-        spatial_hash_grid = SpatialHashGrid(boundary, num_particles, fluid.particles[0].radius)
-
-        # Insert particles into SpatialHashGrid and handle collisions
-        for particle in fluid.particles:
-            spatial_hash_grid.insert_particle(particle)
-            nearby_particles = spatial_hash_grid.get_potential_colliders(particle)
-            for other in nearby_particles:
-                if other != particle:
-                    dx, dy, distance = particle.distance_to(other)
-                    if distance < particle.radius + other.radius:
-                        particle.collide_with(other, dx, dy, distance)
 
         # Draw the fluid particles
         fluid.draw(screen)

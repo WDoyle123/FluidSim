@@ -1,6 +1,7 @@
 import random
 import pygame
 from entities.particle import Particle
+from entities.data_structures import SpatialHashGrid
 
 class Fluid:
     """
@@ -11,7 +12,7 @@ class Fluid:
         width (int): Width of the area in which the fluid is contained.
         height (int): Height of the area in which the fluid is contained.
     """
-    def __init__(self, width, height, num_particles, restitution = 1.0, gravity = 0, friction = 1.0):
+    def __init__(self, boundary, num_particles, restitution = 1.0, gravity = 0, friction = 1.0):
         """
         Initialise the fluid with a set number of particles.
 
@@ -20,13 +21,14 @@ class Fluid:
             height (int): Height of the area in which the fluid is contained.
             num_particles (int): Number of particles in the fluid.
         """
-        self.width = width
-        self.height = height
-        self.particles = [self._create_particle() for _ in range(num_particles)]
+        self.boundary = boundary
+        _, _, self.width, self.height = self.boundary
+        self.num_particles = num_particles
+        self.particles = [self._create_particle() for _ in range(self.num_particles)]
         self.restitution = restitution
         self.gravity = gravity
         self.friction = friction
-        self.density = num_particles / (width * height)
+        self.SHG = SpatialHashGrid(self.boundary, num_particles, self.particles[0].radius)
 
     def _create_particle(self):
         """
@@ -50,25 +52,47 @@ class Fluid:
         Args:
             time_step (float): The time step for the update.
         """
+        self.SHG = SpatialHashGrid(self.boundary, self.num_particles, self.particles[0].radius)
         for particle in self.particles:
             particle.update_position(time_step, gravity=self.gravity, friction=self.friction)
             particle.boundary_collision(0, self.height, 0, self.width, restitution=self.restitution)
 
-    def calculate_density(self):
-        """
-        Calculate the density of the fluid in different regions.
-        """
-        pass  # Implement density calculation
+            # Insert particles into SpatialHashGrid and handle collisions
+            self.SHG.insert_particle(particle)
+            nearby_particles = self.SHG.get_potential_colliders(particle)
+            for other in nearby_particles:
+                dx, dy, distance = particle.distance_to(other)
+                particle.calculate_density_derivative(other)
+                print(particle.x_density_gradient, particle.y_density_gradient)
+                if distance < particle.radius + other.radius:
+                   particle.collide_with(other, dx, dy, distance)
+
 
     def draw(self, screen):
         """
         Draw the fluid particles on the screen.
-
+    
         Args:
             screen (pygame.Surface): The pygame surface to draw the fluid on.
         """
+
+        # Then draw the smaller blue circles on top without transparency
         for particle in self.particles:
-            pygame.draw.circle(screen, (0, 0, 255), 
+            pygame.draw.circle(screen, (50, 50, 255), 
                                (int(particle.x_position), int(particle.y_position)), 
                                particle.radius)
+
+        red_alpha = 64  # 25% transparancy
+
+        for particle in self.particles:
+            temp_surface = pygame.Surface((particle.radius * 10, particle.radius * 10), pygame.SRCALPHA)
+            temp_surface.fill((0, 0, 0, 0))
+            pygame.draw.circle(temp_surface, (50, 50, 255, red_alpha), 
+                               (particle.radius * 5, particle.radius * 5), 
+                               particle.radius * 5)
+
+            screen.blit(temp_surface, (int(particle.x_position - particle.radius * 5), 
+                                       int(particle.y_position - particle.radius * 5)))
+
+
 
