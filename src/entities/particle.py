@@ -163,7 +163,7 @@ class Particle:
 
     def calculate_density(self, distance):
 
-        influence = simple_smoothing_kernel(self.radius * 5, distance)
+        influence = simple_smoothing_kernel(self.radius * 10, distance)
         return self.mass * influence
 
     def calculate_density_derivative(self, other):
@@ -181,5 +181,21 @@ class Particle:
         delta_density_y = self.calculate_density(self.distance_to(other)[2]) - original_density
         self.y_position -= step_size
 
-        self.x_density_gradient = (delta_density_x / step_size)
-        self.y_density_gradient = (delta_density_y / step_size)
+        self.x_density_gradient = (delta_density_x / step_size) * -1e+0
+        self.y_density_gradient = (delta_density_y / step_size) * -1e+0
+
+    def apply_pressure_force(self, time_step, pressure_coefficient=1):
+        """
+        Applies a pressure force to the particle based on its density gradient.
+
+        Args:
+            pressure_coefficient (float): Coefficient determining the strength of the pressure force.
+            time_step (float): The time step for the update.
+        """
+        # Calculate the force components
+        x_force = self.x_density_gradient * pressure_coefficient
+        y_force = self.y_density_gradient * pressure_coefficient
+
+        # Update the velocity based on the force
+        self.x_velocity += (x_force / self.mass) * time_step
+        self.y_velocity += (y_force / self.mass) * time_step

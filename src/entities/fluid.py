@@ -63,7 +63,7 @@ class Fluid:
             for other in nearby_particles:
                 dx, dy, distance = particle.distance_to(other)
                 particle.calculate_density_derivative(other)
-                print(particle.x_density_gradient, particle.y_density_gradient)
+                particle.apply_pressure_force(time_step)
                 if distance < particle.radius + other.radius:
                    particle.collide_with(other, dx, dy, distance)
 
@@ -82,17 +82,29 @@ class Fluid:
                                (int(particle.x_position), int(particle.y_position)), 
                                particle.radius)
 
+            # Calculate the end point of the gradient arrow
+            grad_length = 10  # Adjust the length of the gradient arrow
+            end_x = int(particle.x_position + particle.x_density_gradient * grad_length)
+            end_y = int(particle.y_position + particle.y_density_gradient * grad_length)
+
+            # Draw the gradient arrow
+            pygame.draw.line(screen, (255, 0, 0), (int(particle.x_position), int(particle.y_position)), (end_x, end_y), 2)
+            pygame.draw.polygon(screen, (255, 0, 0), 
+                                [(end_x, end_y),
+                                 (end_x - 3, end_y + 6), 
+                                 (end_x + 3, end_y + 6)])
+
         red_alpha = 64  # 25% transparancy
 
         for particle in self.particles:
-            temp_surface = pygame.Surface((particle.radius * 10, particle.radius * 10), pygame.SRCALPHA)
+            temp_surface = pygame.Surface((particle.radius * 20, particle.radius * 20), pygame.SRCALPHA)
             temp_surface.fill((0, 0, 0, 0))
             pygame.draw.circle(temp_surface, (50, 50, 255, red_alpha), 
-                               (particle.radius * 5, particle.radius * 5), 
-                               particle.radius * 5)
+                               (particle.radius * 10, particle.radius * 10), 
+                               particle.radius * 10)
 
-            screen.blit(temp_surface, (int(particle.x_position - particle.radius * 5), 
-                                       int(particle.y_position - particle.radius * 5)))
+            screen.blit(temp_surface, (int(particle.x_position - particle.radius * 10), 
+                                       int(particle.y_position - particle.radius * 10)))
 
 
 

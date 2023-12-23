@@ -18,10 +18,10 @@ def main():
 
     # Game loop variables
     clock = pygame.time.Clock()
-    time_step = 1 / 3  # 3 updates a second
+    time_step = 1 / 6 # 3 updates a second
 
     # Initialize the fluid with a certain number of particles
-    num_particles = 500
+    num_particles = 200
     fluid = Fluid(boundary, num_particles)
 
     i = 0
