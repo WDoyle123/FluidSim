@@ -60,7 +60,7 @@ class QuadTree:
         self.south_east = QuadTree(south_east, self.capacity)
         self.divided = True  # Set the flag as the node is now subdivided
 
-    def insert(self, particle):
+    def insert_particle(self, particle):
         """
         Insert a particle into the QuadTree.
 
@@ -71,7 +71,7 @@ class QuadTree:
             bool: True if the particle was successfully inserted, False otherwise.
         """
         # Check if the particle fits in the boundary after considering its radius
-        if not self.boundary.inflate(particle.radius * 2, particle.radius * 2).collidepoint(particle.x_position, particle.y_position):
+        if not self.boundary.inflate(particle.smoothing_radius, particle.smoothing_radius).collidepoint(particle.x_position, particle.y_position):
             return False  # Particle does not fit in this node
 
         # Add the particle to this node if capacity is not exceeded
@@ -84,10 +84,10 @@ class QuadTree:
             if not self.divided:
                 self.subdivide()
             # Attempt to insert the particle into each of the subdivided nodes
-            inserted = (self.north_west.insert(particle) or
-                        self.north_east.insert(particle) or
-                        self.south_west.insert(particle) or
-                        self.south_east.insert(particle))
+            inserted = (self.north_west.insert_particle(particle) or
+                        self.north_east.insert_particle(particle) or
+                        self.south_west.insert_particle(particle) or
+                        self.south_east.insert_particle(particle))
             return inserted  # Return whether the particle was successfully inserted
 
     def query(self, collision_box, found):

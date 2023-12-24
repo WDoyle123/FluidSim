@@ -22,13 +22,13 @@ class Particle:
         self.y_velocity = y_velocity
         self.mass = mass
         self.radius = radius
-        self.smoothing_radius = radius * 10
+        self.smoothing_radius = radius * 5
         self.energy = 0
         self.density = 1
         self.x_gradient = 0
         self.y_gradient = 0 
  
-    def update_position(self, time_step, ceiling=None, gravity=9.81, friction=0.9):
+    def update_position(self, time_step, ceiling=None, gravity=9.81, friction=1):
         """
         Updates the position of the particle based on its velocity, applying gravitational and frictional forces.
 
@@ -50,7 +50,7 @@ class Particle:
             if self.x_velocity < 1e-12:
                 self.x_velocity = 0
 
-    def boundary_collision(self, floor, ceiling, left, right, restitution=0.9):
+    def boundary_collision(self, floor, ceiling, left, right, restitution=1):
         """
         Handles the particle's collision with boundary walls (floor, ceiling, left, right).
 
@@ -169,16 +169,16 @@ class Particle:
 
     def calculate_density_derivative(self, other, dx, dy, distance):
 
-        x_direction = dx / distance
-        y_direction = dy / distance
+        x_direction = dx / (distance + 1e-8)
+        y_direction = dy / (distance + 1e-8)
             
         self.calculate_density(distance)
         density_gradient = smoothing_kernel_derivative(distance, self.smoothing_radius)
 
-        self.x_gradient += x_direction * density_gradient * (other.mass / self.density)
-        self.y_gradient += y_direction * density_gradient * (other.mass / self.density)
+        self.x_gradient += x_direction * density_gradient * (other.mass / self.density) * -1
+        self.y_gradient += y_direction * density_gradient * (other.mass / self.density) * -1
 
-    def apply_pressure_force(self, time_step, pressure_coefficient=1):
+    def apply_pressure_force(self, time_step, pressure_coefficient=10):
         """
         Applies a pressure force to the particle based on its density gradient.
 

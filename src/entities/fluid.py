@@ -1,7 +1,7 @@
 import random
 import pygame
 from entities.particle import Particle
-from entities.data_structures import SpatialHashGrid
+from entities.data_structures import SpatialHashGrid, QuadTree
 
 class Fluid:
     """
@@ -12,7 +12,7 @@ class Fluid:
         width (int): Width of the area in which the fluid is contained.
         height (int): Height of the area in which the fluid is contained.
     """
-    def __init__(self, boundary, num_particles, restitution = 1.0, gravity = 0, friction = 1.0):
+    def __init__(self, boundary, num_particles, restitution = 1.0, gravity = 10, friction = 1.0, data_structure='SpatialHashGrid'):
         """
         Initialise the fluid with a set number of particles.
 
@@ -28,7 +28,12 @@ class Fluid:
         self.restitution = restitution
         self.gravity = gravity
         self.friction = friction
-        self.SHG = SpatialHashGrid(self.boundary, num_particles, self.particles[0].radius)
+        if data_structure == 'SpatialHashGrid':
+            self.SHG = SpatialHashGrid(self.boundary, num_particles, self.particles[0].smoothing_radius)
+        elif data_structure == 'QuadTree':
+            self.QT = QuadTree(self.boundary, capacity=16)
+        else:
+            print('Data Structure Not Recognised!')
 
     def _create_particle(self):
         """
@@ -37,15 +42,15 @@ class Fluid:
         Returns:
             Particle: A new particle instance.
         """
-        x = random.uniform(0, self.width)
-        y = random.uniform(0, self.height)
+        x = random.uniform(self.width/2, self.width)
+        y = random.uniform(self.height/2, self.height)
         mass = 1.0
         radius = 5.0
         x_velocity = random.uniform(-0, 0)
         y_velocity = random.uniform(-0, 0)
         return Particle(x, y, mass, radius, x_velocity, y_velocity)
 
-    def update(self, time_step):
+    def update_SHG(self, time_step):
         """
         Update the state of the fluid for the next frame.
 
@@ -66,10 +71,43 @@ class Fluid:
                 dx, dy, distance = particle.distance_to(other)
                 particle.calculate_density_derivative(other, dx, dy, distance)
                 particle.apply_pressure_force(time_step)
-                '''
                 if distance < particle.radius + other.radius:
-                   particle.collide_with(other, dx, dy, distance)
-                '''
+                   # Uncomment for Collisions!
+                   #particle.collide_with(other, dx, dy, distance)
+                   pass
+              
+    def update_QT(self, time_step):
+        """
+        Update the state of the fluid for the next frame.
+
+        Args:
+            time_step (float): The time step for the update.
+        """
+        densities = self.calculate_quadrant_densities()
+        print(f'\r{densities}', end='')
+        self.QT = QuadTree(self.boundary, capacity=16)
+        for particle in self.particles:
+            particle.update_position(time_step, gravity=self.gravity, friction=self.friction)
+            particle.boundary_collision(0, self.height, 0, self.width, restitution=self.restitution)
+
+            # Insert particles into SpatialHashGrid and handle collisions
+            self.QT.insert_particle(particle)
+
+            collision_box = pygame.Rect(particle.x_position - particle.smoothing_radius,
+                                        particle.y_position - particle.smoothing_radius,
+                                        particle.smoothing_radius * 2, particle.smoothing_radius * 2)
+
+            nearby_particles = []
+            self.QT.query(collision_box, nearby_particles)
+            for other in nearby_particles:
+                dx, dy, distance = particle.distance_to(other)
+                particle.calculate_density_derivative(other, dx, dy, distance)
+                particle.apply_pressure_force(time_step)
+                if distance < particle.radius + other.radius:
+                   # Uncomment for Collisions!
+                   # particle.collide_with(other, dx, dy, distance)
+                   pass
+               
 
     def draw(self, screen):
         """
@@ -97,17 +135,23 @@ class Fluid:
                                  (end_x - 3, end_y + 6), 
                                  (end_x + 3, end_y + 6)])
 
-        red_alpha = 64  # 25% transparancy
+        red_alpha = 64  # 25% transparency
 
         for particle in self.particles:
-            temp_surface = pygame.Surface((particle.radius * 20, particle.radius * 20), pygame.SRCALPHA)
-            temp_surface.fill((0, 0, 0, 0))
+            # Create a temporary surface that's large enough to hold the entire circle
+            temp_surface = pygame.Surface((particle.smoothing_radius * 2, particle.smoothing_radius * 2), pygame.SRCALPHA)
+            temp_surface.fill((0, 0, 0, 0))  # Fill with a fully transparent color
+    
+            # Draw the semi-transparent red circle onto the temporary surface
+            # Note that the center of the circle is at (smoothing_radius, smoothing_radius)
             pygame.draw.circle(temp_surface, (50, 50, 255, red_alpha), 
-                               (particle.radius * 10, particle.radius * 10), 
-                               particle.radius * 10)
+                           (particle.smoothing_radius, particle.smoothing_radius), 
+                           particle.smoothing_radius)
 
-            screen.blit(temp_surface, (int(particle.x_position - particle.radius * 10), 
-                                       int(particle.y_position - particle.radius * 10)))
+            # Blit this surface onto the main screen surface
+            # Note that we offset the blit position by smoothing_radius to properly center it
+            screen.blit(temp_surface, (int(particle.x_position - particle.smoothing_radius), 
+                                       int(particle.y_position - particle.smoothing_radius)))
 
     def calculate_quadrant_densities(self):
         """
