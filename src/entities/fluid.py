@@ -2,6 +2,7 @@ import random
 import pygame
 import numpy as np
 from entities.particle import Particle
+from entities.data_structures import SpatialHashGrid
 
 class Fluid:
     def __init__(self, boundary, particle_count, damping=1.0, gravity=0, friction=1.0, target_density=1.0, pressure_coefficient=1.0, data_structure=None):
@@ -57,4 +58,29 @@ class Fluid:
             particle.apply_pressure_force(time_step)
             particle.update_position(time_step, gravity=self.gravity)
             particle.boundary_collision(self.boundary.left, self.boundary.right, self.boundary.top, self.boundary.bottom, self.damping)
+
+    def update_SHG(self, time_step):
+
+        self.SHG = SpatialHashGrid(self.boundary, self.particle_count, self.particles[0].smoothing_radius)
+
+        for particle in self.particles:
+            particle.density = 0
+            particle.pressure = np.array([0., 0.])
+            self.SHG.insert_particle(particle)
+            nearby_particles = self.SHG.nearby_to(particle)
+
+            for other_particle in nearby_particles:
+                direction_vector, distance = particle.distance_to(other_particle)
+                particle.calculate_density(distance)
+                particle.calculate_pressure_force(other_particle, direction_vector, distance, self.target_density, self.pressure_coefficient)
+
+        for particle in self.particles:
+            particle.apply_pressure_force(time_step)
+            particle.update_position(time_step, gravity=self.gravity)
+            particle.boundary_collision(self.boundary.left, self.boundary.right, self.boundary.top, self.boundary.bottom, self.damping)
+
+
+
+
+
 

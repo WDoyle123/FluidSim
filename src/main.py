@@ -27,7 +27,7 @@ def main():
 
         screen.fill((0, 0, 0))
 
-        fluid.update(time_step)
+        fluid.update_SHG(time_step)
 
         fluid.draw(screen)
 
