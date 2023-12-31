@@ -8,7 +8,7 @@ class Particle:
         self.velocity = np.array([x_velocity, y_velocity])
         self.mass = mass
         self.radius = radius
-        self.smoothing_radius = radius * (4**2)
+        self.smoothing_radius = radius * 2
         self.density = 0
         self.pressure = np.array([0., 0.])
 
@@ -71,3 +71,26 @@ class Particle:
         density_error = self.density - target_density
         pressure = density_error * pressure_coefficient
         return pressure
+
+    def collide_with(self, other, direction_vector, distance, positional_correction_factor=0.01, damping=1.0):
+
+        if distance <= (self.smoothing_radius + other.smoothing_radius):
+            relative_velocity = self.velocity - other.velocity
+            velocity_along_normal = np.dot(relative_velocity, direction_vector)
+
+            if velocity_along_normal > 0:
+                return
+
+            impulse = -(1 + damping) * velocity_along_normal / (1 / self.mass + 1 / other.mass)
+            impulse_vector = impulse * direction_vector
+
+            self.velocity += impulse_vector / self.mass
+            other.velocity -= impulse_vector / other.mass
+            
+            '''
+            # Positional correction (optional, based on your needs)
+            correction_magnitude = positional_correction_factor * max(0, self.radius + other.radius - distance)
+            correction_vector = correction_magnitude * direction_vector
+            self.position += correction_vector / 2  # Half correction for each particle
+            other.position -= correction_vector / 2
+            '''

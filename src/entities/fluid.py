@@ -29,7 +29,7 @@ class Fluid:
             pygame.draw.circle(screen, (50, 50, 255), 
                                (int(particle.position[0]), int(particle.position[1])), particle.radius)
 
-        alpha = 16
+        alpha = 255
 
         for particle in self.particles:
             temp_surface = pygame.Surface((particle.smoothing_radius * 2, particle.smoothing_radius * 2), pygame.SRCALPHA)
@@ -53,6 +53,8 @@ class Fluid:
                     direction_vector, distance = particle.distance_to(other_particle)
                     particle.calculate_density(distance)
                     particle.calculate_pressure_force(other_particle, direction_vector, distance, self.target_density, self.pressure_coefficient)
+                    if distance < particle.smoothing_radius + other_particle.smoothing_radius:
+                        particle.collide_with(other_particle, direction_vector, distance, self.damping)
 
         for particle in self.particles:
             particle.apply_pressure_force(time_step)
@@ -73,6 +75,9 @@ class Fluid:
                 direction_vector, distance = particle.distance_to(other_particle)
                 particle.calculate_density(distance)
                 particle.calculate_pressure_force(other_particle, direction_vector, distance, self.target_density, self.pressure_coefficient)
+                if distance < particle.smoothing_radius + other_particle.smoothing_radius:
+                    particle.collide_with(other_particle, direction_vector, distance, self.damping)
+
 
         for particle in self.particles:
             particle.apply_pressure_force(time_step)
