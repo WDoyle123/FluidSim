@@ -7,7 +7,7 @@ def main():
 
     pygame.init()
 
-    width, height = 600, 600
+    width, height = 200, 600
     boundary = pygame.Rect(0, 0, width, height)
     screen = pygame.display.set_mode((width, height))
     pygame.display.set_caption("Particle Simulation")
@@ -15,8 +15,8 @@ def main():
     clock = pygame.time.Clock()
     time_step = 1 / 3
 
-    particle_count = 250
-    fluid = Fluid(boundary, particle_count, pressure_coefficient=0.0000001, target_density=0.25, gravity=0, damping=.9)
+    particle_count = 50
+    fluid = Fluid(boundary, particle_count, pressure_coefficient=0.0000001, target_density=0.25, gravity=0., damping=.9)
 
     while True:
         for event in pygame.event.get():
