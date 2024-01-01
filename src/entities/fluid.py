@@ -29,7 +29,7 @@ class Fluid:
             pygame.draw.circle(screen, (50, 50, 255), 
                                (int(particle.position[0]), int(particle.position[1])), particle.radius)
 
-        alpha = 255
+        alpha = 16
 
         for particle in self.particles:
             temp_surface = pygame.Surface((particle.smoothing_radius * 2, particle.smoothing_radius * 2), pygame.SRCALPHA)

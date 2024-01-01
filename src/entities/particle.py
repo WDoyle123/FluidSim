@@ -8,7 +8,7 @@ class Particle:
         self.velocity = np.array([x_velocity, y_velocity])
         self.mass = mass
         self.radius = radius
-        self.smoothing_radius = radius * 2
+        self.smoothing_radius = radius * 4
         self.density = 0
         self.pressure = np.array([0., 0.])
 
