@@ -44,3 +44,7 @@ Below are two demonstrations:
    Here, the fluid is simulated without gravity. Particles evenly distribute to maintain a uniform density, filling the available space.
 
    ![figure_1](figures/no_gravity_sim.gif)
+
+## References
+
+Müller, Matthias & Charypar, David & Gross, Markus. (2003). Particle-Based Fluid Simulation for Interactive Applications. Fluid Dynamics. 2003. 154-159. [Link to Paper](https://matthias-research.github.io/pages/publications/sca03.pdf)
