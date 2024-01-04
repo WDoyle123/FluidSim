@@ -58,3 +58,13 @@ def spiky_smoothing_kernel_2d_derivative(distance, smoothing_radius):
         return spiky_kernel_derivative * normalisation_constant
     else:
         return 0
+
+import jax.numpy as jnp
+from jax import jit
+
+@jit
+def jax_spiky_smoothing_kernel_2d(distance, smoothing_radius):
+    normalisation_constant = 10 / (jnp.pi * smoothing_radius ** 5)
+    spiky_kernel = (smoothing_radius - distance) ** 3
+
+    return jnp.where((0 <= distance) & (distance <= smoothing_radius), spiky_kernel * normalisation_constant, 0)
