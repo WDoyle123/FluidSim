@@ -4,12 +4,15 @@
 
 **This project is currently under construction.**
 
-FluidSim is a particle-based fluid simulation using Smoothed Particle Hydrodynamics (SPH) designed to demonstrate the concepts of fluid dynamics and collision detection in a 2D environment. The simulation utilises a SpatialHashGrid for optimised collision detection, reducing the computational complexity and enhancing the efficiency of the simulation.
+FluidSim is a particle-based fluid simulation using Smoothed Particle Hydrodynamics (SPH) designed to demonstrate the concepts of fluid dynamics and collision detection in a 2D environment. The simulation utilises a SpatialHashGrid for optimised collision detection, reducing the computational complexity and enhancing the efficiency of the simulation. Additionally, FluidSim uses JAX to perform complex fluid calculation on the GPU.
 
 ## Features
 
 - **Visualisations**:
   - Utilises pygame for dynamic, real-time visual representation of the fluid simulation.
+
+- **JAX GPU Optimisation**:
+  - Uses JAX code to run the complex fluid mechanics on GPUs for increased performance.
 
 - **Real-time 2D Fluid Simulation**:
   - Demonstrates fluid movement and interactions in two dimensions.
