@@ -52,7 +52,6 @@ class Particle:
                         Positive values of gravity will result in downward acceleration.
         :type gravity: float, optional
         """
-        print(type(self.velocity))
         if gravity > 0: 
             self.velocity[1] += gravity * time_step
 
@@ -153,8 +152,7 @@ class Particle:
         :param distance: The distance between this particle and another particle.
         :type distance: float
         """
-        influence = jax_spiky_smoothing_kernel_2d(distance, self.smoothing_radius)
-        influence = np.array(influence)
+        influence = spiky_smoothing_kernel_2d(distance, self.smoothing_radius)
         self.density += self.mass * influence
 
     def calculate_pressure_force(self, other, direction_vector, distance, target_density, pressure_coefficient):
@@ -180,7 +178,8 @@ class Particle:
         :param pressure_coefficient: The coefficient used in pressure conversion calculations.
         :type pressure_coefficient: float
         """
-        gradient_magnitude = jax_spiky_smoothing_kernel_2d(distance, self.smoothing_radius).item()
+        gradient_magnitude = spiky_smoothing_kernel_2d_derivative(distance, self.smoothing_radius)
+
         pressure_force_magnitude = (- other.mass * 
                                     (self.convert_density_to_pressure(target_density, pressure_coefficient)) /
                                     (other.density + 1e-8) *
