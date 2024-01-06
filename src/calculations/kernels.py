@@ -60,7 +60,7 @@ def spiky_smoothing_kernel_2d_derivative(distance, smoothing_radius):
         return 0
 
 import jax.numpy as jnp
-from jax import jit
+from jax import jit, grad
 
 @jit
 def jax_spiky_smoothing_kernel_2d(distance, smoothing_radius):
@@ -68,3 +68,5 @@ def jax_spiky_smoothing_kernel_2d(distance, smoothing_radius):
     spiky_kernel = (smoothing_radius - distance) ** 3
 
     return jnp.where((0 <= distance) & (distance <= smoothing_radius), spiky_kernel * normalisation_constant, 0)
+
+jax_spiky_smoothing_kernel_2d_derivative = grad(jax_spiky_smoothing_kernel_2d, argnums=0)

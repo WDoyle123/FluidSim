@@ -1,10 +1,10 @@
 import jax.numpy as jnp
 from jax import jit, grad
 
-from calculations.kernels import jax_spiky_smoothing_kernel
+from calculations.kernels import jax_spiky_smoothing_kernel_2d, jax_spiky_smoothing_kernel_2d_derivative
 
 class Particle:
-    def __init__(self, position, velocity, radius=5):
+    def __init__(self, position, velocity, radius=5, pressure=None):
         self.position = jnp.array(position)
         self.velocity = jnp.array(velocity)
         self.mass = 1
@@ -63,7 +63,7 @@ class Particle:
     def calculate_pressure_force(pressure, own_mass, other_mass, density, direction_vector,
                                  distance, target_density, pressure_coefficient, smoothing_radius):
 
-        gradient_magnitude = grad(jax_spiky_smoothing_kernel_2d(distance, smoothing_radius))
+        gradient_magnitude = jax_spiky_smoothing_kernel_2d_derivative(distance, smoothing_radius)
         pressure_force_magnitude = (- other_mass * 
                                     (own_mass * target_density * pressure_coefficient) /
                                     (density + 1e-8) *
@@ -78,28 +78,24 @@ class Particle:
     def collide_with(velocity_self, velocity_other, position_self, position_other,
                      mass_self, mass_other, smoothing_radius_self, smoothing_radius_other,
                      direction_vector, distance, positional_correction_factor=0.001, damping=1.0):
+        
+        relative_velocity = velocity_self - velocity_other
+        velocity_along_normal = jnp.dot(relative_velocity, direction_vector)
 
-        if distance <= (smoothing_radius_self + smoothing_radius_other):
-            relative_velocity = velocity_self - velocity_other
-            velocity_along_normal = jnp.dot(relative_velocity, direction_vector)
+        impulse = -(1 + damping) * velocity_along_normal / (1 / mass_self + 1 / mass_other)
+        impulse_vector = impulse * direction_vector
 
-            if velocity_along_normal > 0:
-                return velocity_self, velocity_other, position_self, position_other
-
-            impulse = -(1 + damping) * velocity_along_normal / (1 / mass_self + 1 / mass_other)
-            impulse_vector = impulse * direction_vector
-
-            new_velocity_self = velocity_self + impulse_vector / mass_self
-            new_velocity_other = velocity_other - impulse_vector / mass_other
+        new_velocity_self = velocity_self + impulse_vector / mass_self
+        new_velocity_other = velocity_other - impulse_vector / mass_other
             
-            correction_magnitude = positional_correction_factor * jnp.maximum(0, smoothing_radius_self + smoothing_radius_other - distance)
-            correction_vector = correction_magnitude * direction_vector
-            new_position_self = position_self + correction_vector / 2
-            new_position_other = position_other - correction_vector / 2
+        correction_magnitude = positional_correction_factor * jnp.maximum(0, smoothing_radius_self + smoothing_radius_other - distance)
+        correction_vector = correction_magnitude * direction_vector
+        new_position_self = position_self + correction_vector / 2
+        new_position_other = position_other - correction_vector / 2
 
-            return new_velocity_self, new_velocity_other, new_position_self, new_position_other
+        return new_velocity_self, new_velocity_other, new_position_self, new_position_other
 
-        return velocity_self, velocity_other, position_self, position_other
+        #return velocity_self, velocity_other, position_self, position_other
 
     @staticmethod
     @jit
