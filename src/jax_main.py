@@ -5,10 +5,6 @@ from entities.jax_fluid import Fluid
 
 def main():
 
-    from jax.lib import xla_bridge
-    print(xla_bridge.get_backend().platform)
-
-
     pygame.init()
 
     width, height = 400, 400
@@ -17,10 +13,10 @@ def main():
     pygame.display.set_caption("Particle Simulation")
 
     clock = pygame.time.Clock()
-    time_step = 1 / 1
+    time_step = 1 / 3
 
     particle_count = 10
-    fluid = Fluid(boundary, particle_count, pressure_coefficient=0.0000001, target_density=0.25, gravity=9.81, damping=.9)
+    fluid = Fluid(boundary, particle_count, pressure_coefficient=0.0000001, target_density=0.25, gravity=0.1, damping=.9)
 
     running = True
     try:
@@ -31,7 +27,7 @@ def main():
 
             screen.fill((0, 0, 0))
 
-            fluid.update(time_step)
+            fluid.update_fluid(time_step)
 
             fluid.draw(screen)
 

@@ -21,20 +21,16 @@ class Particle:
 
         return Particle(new_position, new_velocity, self.radius)
 
-    def distance_to(self, other):
-        delta = self.position - other.position
-        distance = jnp.sqrt(jnp.sum(delta ** 2))
-
-        epsilon = 1e-8
-        direction_vector = delta / (distance + epsilon)
-        return direction_vector, distance
 
     @staticmethod
-    @jit
     def update_position(position, velocity, time_step, gravity=0):
+        new_position = position
+        new_velocity = velocity
+        
         new_velocity = velocity.at[1].add(gravity * time_step)
         new_position = position + new_velocity * time_step
-        return new_position
+
+        return new_position, new_velocity
 
     @staticmethod
     @jit
@@ -99,22 +95,26 @@ class Particle:
 
     @staticmethod
     @jit
-    def boundary_collision(position, velocity, radius, left, right, top, bottom, damping=1.0):
-        new_position = position
-        new_velocity = velocity
-
+    def left_right_boundary_collision(position, velocity, radius, left, right, damping):
         # Collision with left and right walls
-        new_position = jnp.where(new_position[0] - radius <= left, left + radius, new_position)
-        new_velocity = jnp.where(new_position[0] - radius <= left, -new_velocity[0] * damping, new_velocity)
+        collision_left = position[0] - radius <= left
+        collision_right = position[0] + radius >= right
 
-        new_position = jnp.where(new_position[0] + radius >= right, right - radius, new_position)
-        new_velocity = jnp.where(new_position[0] + radius >= right, -new_velocity[0] * damping, new_velocity)
+        new_position = jnp.where(collision_left, left + radius, position)
+        new_position = jnp.where(collision_right, right - radius, new_position)
+        new_velocity = velocity.at[0].set(jnp.where(collision_left | collision_right, -velocity[0] * damping, velocity[0]))
 
+        return new_position, new_velocity
+
+    @staticmethod
+    @jit
+    def top_bottom_boundary_collision(position, velocity, radius, top, bottom, damping):
         # Collision with top and bottom walls
-        new_position = jnp.where(new_position[1] - radius <= top, top + radius, new_position)
-        new_velocity = jnp.where(new_position[1] - radius <= top, -new_velocity[1] * damping, new_velocity)
+        collision_top = position[1] - radius <= top
+        collision_bottom = position[1] + radius >= bottom
 
-        new_position = jnp.where(new_position[1] + radius >= bottom, bottom - radius, new_position)
-        new_velocity = jnp.where(new_position[1] + radius >= bottom, -new_velocity[1] * damping, new_velocity)
+        new_position = jnp.where(collision_top, top + radius, position)
+        new_position = jnp.where(collision_bottom, bottom - radius, new_position)
+        new_velocity = velocity.at[1].set(jnp.where(collision_top | collision_bottom, -velocity[1] * damping, velocity[1]))
 
         return new_position, new_velocity
