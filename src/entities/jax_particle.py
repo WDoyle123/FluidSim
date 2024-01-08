@@ -96,25 +96,23 @@ class Particle:
     @staticmethod
     @jit
     def left_right_boundary_collision(position, velocity, radius, left, right, damping):
-        # Collision with left and right walls
         collision_left = position[0] - radius <= left
         collision_right = position[0] + radius >= right
 
-        new_position = jnp.where(collision_left, left + radius, position)
-        new_position = jnp.where(collision_right, right - radius, new_position)
-        new_velocity = velocity.at[0].set(jnp.where(collision_left | collision_right, -velocity[0] * damping, velocity[0]))
+        new_x = jnp.where(collision_left, left + radius, position[0])
+        new_x = jnp.where(collision_right, right - radius, new_x)
+        new_velocity_x = jnp.where(collision_left | collision_right, -velocity[0] * damping, velocity[0])
 
-        return new_position, new_velocity
+        return jnp.array([new_x, position[1]]), velocity.at[0].set(new_velocity_x)
 
     @staticmethod
     @jit
     def top_bottom_boundary_collision(position, velocity, radius, top, bottom, damping):
-        # Collision with top and bottom walls
         collision_top = position[1] - radius <= top
         collision_bottom = position[1] + radius >= bottom
 
-        new_position = jnp.where(collision_top, top + radius, position)
-        new_position = jnp.where(collision_bottom, bottom - radius, new_position)
-        new_velocity = velocity.at[1].set(jnp.where(collision_top | collision_bottom, -velocity[1] * damping, velocity[1]))
+        new_y = jnp.where(collision_top, top + radius, position[1])
+        new_y = jnp.where(collision_bottom, bottom - radius, new_y)
+        new_velocity_y = jnp.where(collision_top | collision_bottom, -velocity[1] * damping, velocity[1])
 
-        return new_position, new_velocity
+        return jnp.array([position[0], new_y]), velocity.at[1].set(new_velocity_y)
