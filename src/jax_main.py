@@ -17,6 +17,8 @@ def main():
 
     particle_count = 10
     fluid = Fluid(boundary, particle_count, pressure_coefficient=0.0000001, target_density=0.25, gravity=0.1, damping=.9)
+    counter = 0 
+    target = 300
 
     running = True
     try:
@@ -30,6 +32,10 @@ def main():
             fluid.update_fluid(time_step)
 
             fluid.draw(screen)
+
+            counter += 1
+            if counter == target:
+                running = False
 
             pygame.display.flip()
     except KeyboardInterrupt:
