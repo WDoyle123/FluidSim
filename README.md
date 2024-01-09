@@ -32,12 +32,12 @@ FluidSim is a particle-based fluid simulation using Smoothed Particle Hydrodynam
 
 ## Installation
 
-- **Clone the Repository**:
+1. **Clone the Repository**:
 
 ```
 git clone -b jax https://github.com/wdoyle123/FluidSim.git
 ```
-- **Install requirements.txt (optional virtual env)**:
+2. **Install requirements.txt (optional virtual env)**:
 
 ```
 cd FluidSim
@@ -45,7 +45,7 @@ pythom -m venv venv # optional
 source venv/bin/activate # optional
 pip install -r requirements.txt
 ```
-Optionally for GPU computation on RTX 3070 (Driver Version: 545.29.06 CUDA Version: 12.3) (consult jax docs for specific hardware installtion):
+Optionally for GPU computation on RTX 3070 (Driver Version: 545.29.06 CUDA Version: 12.3) (consult jax docs for specific hardware installation):
 
 ```
 pip install --upgrade "jax[cuda12_pip]" -f https://storage.googleapis.com/jax-releases/jax_cuda_releases.html
